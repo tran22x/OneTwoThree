@@ -5,12 +5,24 @@ public class Monster {
 	
 	public static enum State {AWAKE, SLEEPING};
 	public State state = State.SLEEPING;
-	
-	public Monster () {
-		
+	private int time;
+	private int wait = 8000;
+	private PApplet app;
+	private float x = (float) -1.6;
+	private float y = (float) -0.7;
+	public Monster (PApplet app) {
+		this.app = app;
+		time = app.millis();
 	}
 	
 	public void draw (PApplet app) {
+		if(app.millis() - time >= wait){
+			if (state == State.AWAKE) {
+				state = State.SLEEPING;
+			}
+			else state = State.AWAKE;
+		    time = app.millis();//also update the stored time
+		}
 		switch(state) {
 		case AWAKE:
 			drawAwake(app);
@@ -22,17 +34,15 @@ public class Monster {
 	}
 	
 	private void drawSleeping (PApplet app) {
-//		System.out.println("Width is: " + app.width);
-//		System.out.println("Height is: " + app.height);
 		app.fill(0,255,0);
-		app.ellipse((float)-0.5,(float)-0.5, 0.5f, 0.5f);
+		app.ellipse(x,y, 0.5f, 0.5f);
+		
 	}
 	
 	private void drawAwake (PApplet app) {
-		
 		//draw red circle
-		app.fill(0, 255,0);
-		app.ellipse(50, app.height - app.height/10, .2f, .2f);
+		app.fill(255, 0,0);
+		app.ellipse(x, y, .5f, .5f);
 	}
 	
 }

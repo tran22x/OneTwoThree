@@ -5,7 +5,9 @@ import edu.mtholyoke.cs.comsc243.kinect.Body;
 import edu.mtholyoke.cs.comsc243.kinect.KinectBodyData;
 import edu.mtholyoke.cs.comsc243.kinectTCP.TCPBodyReceiver;
 import processing.core.PApplet;
+import processing.core.PImage;
 import processing.core.PVector;
+
 public class OneTwoThree extends PApplet {
 	
 	public static int PROJECTOR_WIDTH = 1024;
@@ -13,7 +15,11 @@ public class OneTwoThree extends PApplet {
 	public boolean gameOver;
 	public Monster m;
 	public Arm arm;
-	
+	public WeaponPiece weapon;
+	private PImage weaponImage;
+	private static final int NUM_WEAPON = 10;
+	private int weaponCollected = 0;
+	private PImage bg;
 
 	TCPBodyReceiver kinectReader;
 	public static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
@@ -43,13 +49,15 @@ public class OneTwoThree extends PApplet {
 	}
 
 	public void settings() {
-		createWindow(true, false, .5f);
-		m = new Monster();
+		createWindow(true, true, .5f);
+		m = new Monster(this);
 		arm = new Arm(this);
+		weapon = new WeaponPiece(this);
+		bg = loadImage("data/Gamebgnd.jpg");
+		//weaponImage = loadImage(weapon.drawWeapon());
 	}
 
 	public void setup(){
-		
 
 		/*
 		 * use this code to run your PApplet from data recorded by recorder 
@@ -74,13 +82,16 @@ public class OneTwoThree extends PApplet {
 	public void draw(){
 		setScale(.5f);
 		noStroke();
-		background(200,200,200);
+		background(bg);
 		fill(0,255,0);
-		//rendering monster at a static location
 		
 		
 		//draw monster
 		m.draw(this);
+		//draw weapon
+		weapon.drawWeapon();
+		//image(weaponImage,(float) -0.5, (float)-0.5, 2f, 2f);
+		
 		
 		//draw person
 		//HOW TO DETECT MOVEMENT?
@@ -93,6 +104,12 @@ public class OneTwoThree extends PApplet {
 			PVector handRight = person.getJoint(Body.HAND_RIGHT);
 			PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
 			arm.draw(handRight, elbowRight, shoulderRight, this);
+			if (handRight != null && weapon.isGrabbed(handRight)) {
+				if (weaponCollected < NUM_WEAPON) {
+					weapon.nextWeapon();
+					weaponCollected++;
+				}
+			}
 		}
 
 	}
