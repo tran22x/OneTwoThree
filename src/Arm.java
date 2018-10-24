@@ -24,12 +24,13 @@ public class Arm {
 		drawJoint(shoulder);	
 	}
 	
-	public void getState() {
+	public int getState() {
 		//get current state of the arm
+		return state;
 	}
 	
-	public void setState() {
-		
+	public void setState(int state) {
+		this.state = state;
 	}
 	
 	private void drawJoint (PVector v) {
