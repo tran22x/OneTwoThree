@@ -45,4 +45,7 @@ public class Monster {
 		app.ellipse(x, y, .5f, .5f);
 	}
 	
+	public boolean isAwake() {
+		return state == State.AWAKE;
+	}
 }

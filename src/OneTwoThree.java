@@ -1,5 +1,7 @@
 
 import java.io.IOException;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import edu.mtholyoke.cs.comsc243.kinect.Body;
 import edu.mtholyoke.cs.comsc243.kinect.KinectBodyData;
@@ -13,14 +15,17 @@ public class OneTwoThree extends PApplet {
 	public static int PROJECTOR_WIDTH = 1024;
 	public static int PROJECTOR_HEIGHT = 786;
 	public boolean gameOver;
-	public Monster m;
+	public Monster monster;
 	public Arm arm;
 	public WeaponPiece weapon;
 	private PImage weaponImage;
 	private static final int NUM_WEAPON = 10;
 	private int weaponCollected = 0;
 	private PImage bg;
-
+	
+	private Deque<PVector> recentLocations;
+	//TO DO: define the threshold
+	private final float MOVEMENT_THRESHOLD = 20;
 	TCPBodyReceiver kinectReader;
 	public static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 
@@ -50,11 +55,12 @@ public class OneTwoThree extends PApplet {
 
 	public void settings() {
 		createWindow(true, true, .5f);
-		m = new Monster(this);
+		monster = new Monster(this);
 		arm = new Arm(this);
 		weapon = new WeaponPiece(this);
 		bg = loadImage("data/Gamebgnd.jpg");
 		//weaponImage = loadImage(weapon.drawWeapon());
+		recentLocations = new LinkedList<>();
 	}
 
 	public void setup(){
@@ -87,11 +93,11 @@ public class OneTwoThree extends PApplet {
 		
 		
 		//draw monster
-		m.draw(this);
 		//draw weapon
 		weapon.drawWeapon();
 		//image(weaponImage,(float) -0.5, (float)-0.5, 2f, 2f);
 		
+		monster.draw(this);
 		
 		//draw person
 		//HOW TO DETECT MOVEMENT?
@@ -110,8 +116,24 @@ public class OneTwoThree extends PApplet {
 					weaponCollected++;
 				}
 			}
+			PVector averageArm = (shoulderRight.add(handRight).add(elbowRight)).div(3);
+			updateQueue(averageArm);
 		}
-
+		if (monster.isAwake()) {
+			boolean moving = checkMovement();
+			if (moving) {
+				arm.setState(arm.getState()-1);
+			}
+		}
+		
+		if (arm.getState()==0) {
+			gameOver = true;
+		}
+		
+		if (gameOver) {
+			//TO DO: a scene for game over
+			return;
+		}
 	}
 		
 	/**
@@ -125,6 +147,31 @@ public class OneTwoThree extends PApplet {
 			ellipse(vec.x, vec.y, .1f,.1f);
 		}
 
+	}
+	
+	private void updateQueue(PVector currentLocation) {
+		if (recentLocations!=null) {
+			PVector lastLocation = recentLocations.getLast();
+			PVector currentDif = currentLocation.sub(lastLocation);
+			recentLocations.offer(currentDif);
+			if (recentLocations.size()>5) {
+				recentLocations.poll();
+			}
+		}
+	}
+	
+	private boolean checkMovement() {
+		PVector sumDifferent = new PVector(0,0,0);
+		for (PVector location : recentLocations) {
+			sumDifferent.add(location);
+		}
+		
+		float dif = sumDifferent.x + sumDifferent.y + sumDifferent.z;
+		
+		if (dif > MOVEMENT_THRESHOLD) {
+			return true;
+		}
+		return false;
 	}
 
 	public static void main(String[] args) {
