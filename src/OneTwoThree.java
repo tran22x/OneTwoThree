@@ -25,6 +25,7 @@ public class OneTwoThree extends PApplet {
 	private boolean moving = false;
 	private int lastDead;
 	private int deadWaitTime = 500;
+
 	TCPBodyReceiver kinectReader;
 	public static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 
@@ -85,84 +86,83 @@ public class OneTwoThree extends PApplet {
 	}
 	public void draw(){
 		if(!gameOver) {
-		image(bg, 0,0, width, height);
-		setScale(.5f);
-		noStroke();
-		//background(200,200,200);
-		fill(0,255,0);
-		
-		
-		//draw monster
-		//draw weapon
-		weapon.drawWeapon();
-		//image(weaponImage,(float) -0.5, (float)-0.5, 2f, 2f);
-		monster.draw(this);
-		
-		//draw person
-		KinectBodyData bodyData1 = kinectReader.getMostRecentData();
-		KinectBodyData bodyData = kinectReader.getNextData();
-		if(bodyData == null) return;
-		Body person = bodyData.getPerson(0);
-		if(person != null){
-			PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
-			PVector handRight = person.getJoint(Body.HAND_RIGHT);
-			PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
-			arm.draw(handRight, elbowRight, shoulderRight, this);
-			if (handRight != null && weapon.isGrabbed(handRight)) {
-				if (weaponCollected < NUM_WEAPON) {
-					weapon.nextWeapon();
-					weaponCollected++;
+			image(bg, 0,0, width, height);
+			setScale(.5f);
+			noStroke();
+			//background(200,200,200);
+			fill(0,255,0);
+			
+			
+			//draw monster
+			//draw weapon
+			weapon.drawWeapon();
+			//image(weaponImage,(float) -0.5, (float)-0.5, 2f, 2f);
+			monster.draw(this);
+			
+			//draw person
+			KinectBodyData bodyData1 = kinectReader.getMostRecentData();
+			KinectBodyData bodyData = kinectReader.getNextData();
+			if(bodyData == null) return;
+			Body person = bodyData.getPerson(0);
+			if(person != null){
+				PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
+				PVector handRight = person.getJoint(Body.HAND_RIGHT);
+				PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
+				arm.draw(handRight, elbowRight, shoulderRight, this);
+				if (handRight != null && weapon.isGrabbed(handRight)) {
+					if (weaponCollected < NUM_WEAPON) {
+						weapon.nextWeapon();
+						weaponCollected++;
+					}
 				}
 			}
-				if (monster.isAwake()) {
-					if (moving == false){
-						moving =  arm.isMoving();
-						if (moving) {
-							arm.setState(arm.getState()-1);
-							lastDead = millis();
-							System.out.println(moving + "+" + arm.getState());
-							fill(1,1,1);
-							this.ellipse(0, 0, 0.5f, 0.5f);
-							checkGameOver();
-						}
-					} else if(lastDead != 0 && millis() - lastDead > deadWaitTime){
-						moving = false;
-						lastDead = 0;
+			if (monster.isAwake()) {
+				if (moving == false){
+					moving =  arm.isMoving();
+					if (moving) {
+						arm.setState(arm.getState()-1);
+						lastDead = millis();
+						System.out.println(moving + "+" + arm.getState());
+						fill(1,1,1);
+						this.ellipse(0, 0, 0.5f, 0.5f);
+						checkGameOver();
 					}
-				} else {
+				} else if(lastDead != 0 && millis() - lastDead > deadWaitTime){
 					moving = false;
 					lastDead = 0;
 				}
+			} else {
+				moving = false;
+				lastDead = 0;
 			}
 		}
 	}
-				
-			/**
-			 * Draws an ellipse in the x,y position of the vector (it ignores z).
-			 * Will do nothing is vec is null.  This is handy because get joint 
-			 * will return null if the joint isn't tracked. 
-			 * @param vec
-			 */
-			public void drawIfValid(PVector vec) {
-				if(vec != null) {
-					ellipse(vec.x, vec.y, .1f,.1f);
-				}
-			}
-			
-			private boolean checkGameOver() {
-				if (arm.getState()<0) {
-					gameOver = true;
-				}
-				if (gameOver) {
-					//TO DO: a scene for game over
-					background(0,0,0);
-				}
-				return gameOver;
-			}
-			
+		
+	/**
+	 * Draws an ellipse in the x,y position of the vector (it ignores z).
+	 * Will do nothing is vec is null.  This is handy because get joint 
+	 * will return null if the joint isn't tracked. 
+	 * @param vec
+	 */
+	public void drawIfValid(PVector vec) {
+		if(vec != null) {
+			ellipse(vec.x, vec.y, .1f,.1f);
+		}
+	}
+	
+	private boolean checkGameOver() {
+		if (arm.getState()==0) {
+			gameOver = true;
+		}
+		if (gameOver) {
+			//TO DO: a scene for game over
+			background(0,0,0);
+		}
+		return gameOver;
+	}
+
 	public static void main(String[] args) {
 		PApplet.main(OneTwoThree.class.getName());
-		
 	}
 
 }

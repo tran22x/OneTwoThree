@@ -37,13 +37,13 @@ public class Arm {
 		shoulderQueue.add(shoulder);
 		elbowQueue.add(elbow);
 		
-		if (handQueue.size() > 10) {
+		if (handQueue.size() > 5) {
 			preHand = handQueue.poll();
 		}
-		if (shoulderQueue.size() > 10) {
+		if (shoulderQueue.size() > 5) {
 			preShoulder = shoulderQueue.poll();
 		}
-		if (elbowQueue.size() > 10) {
+		if (elbowQueue.size() > 5) {
 			preElbow = elbowQueue.poll();
 		}
 		//draw entire arm
