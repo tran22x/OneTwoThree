@@ -1,5 +1,6 @@
 
 import processing.core.PApplet;
+import processing.core.PImage;
 
 public class Monster {
 	
@@ -8,11 +9,16 @@ public class Monster {
 	private int time;
 	private int wait = 8000;
 	private PApplet app;
-	private float x = (float) -1.6;
-	private float y = (float) -0.7;
+	public final float x = (float) -2.4;
+	public final float y = (float) -0.5;
+	private PImage sleeping;
+	private PImage awake;
+	public final int MONSTER_SIZE = 2;
 	public Monster (PApplet app) {
 		this.app = app;
 		time = app.millis();
+		sleeping = app.loadImage("data/Monster-Sleeping.png");
+		awake = app.loadImage("data/Monster-Awake.png");
 	}
 	
 	public void draw (PApplet app) {
@@ -34,15 +40,11 @@ public class Monster {
 	}
 	
 	private void drawSleeping (PApplet app) {
-		app.fill(0,255,0);
-		app.ellipse(x,y, 0.5f, 0.5f);
-		
+		app.image(sleeping,x,y, MONSTER_SIZE, MONSTER_SIZE);
 	}
 	
 	private void drawAwake (PApplet app) {
-		//draw red circle
-		app.fill(255, 0,0);
-		app.ellipse(x, y, .5f, .5f);
+		app.image(awake,x,y, MONSTER_SIZE, MONSTER_SIZE);
 	}
 	
 	public boolean isAwake() {
