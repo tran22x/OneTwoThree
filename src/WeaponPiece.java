@@ -6,53 +6,37 @@ import processing.core.PImage;
 
 public class WeaponPiece {
 	
-	
 	//generate random location for the piece
 	private Random random = new Random();
 	private float x;
 	private float y;
 	private PApplet app;
-	private PImage weapon1;
-	private PImage weapon2;
-	private PImage weapon3;
-	private PImage[] weapons = new PImage[5];
-	private String[] imageArray = {"data/weapon1.png", "data/weapon2.png","data/weapon1","data/weapon2"};
-	private int currImage = 0;
+	private PImage weapon;
 	private int currWeapon = 0;
-	final double THRESHOLD = .1f;//radius of weapon
+	public boolean allCollected = false;
+	final double THRESHOLD = .3f;//radius of weapon
 
+	public void setCollected (boolean b) {
+		allCollected = b;
+	}
 	public WeaponPiece(PApplet app) {
 		//save random location
-		x = random.nextFloat();
-		y = random.nextFloat();
+		if (random.nextBoolean()) {
+			x = random.nextFloat();
+			y = (float) ((float) random.nextFloat()*(0.7));
+		}
+		else {
+			x = random.nextFloat()*(-1);
+			y = (float) ((float) random.nextFloat()*(0.7))*(-1);
+		}
 		this.app = app;
-		weapon1 = app.loadImage(imageArray[0]);
-		weapon2 = app.loadImage(imageArray[1]);
-		weapon3 = app.loadImage("data/weapon3.png");
-		
-		weapons[0] = weapon1;
-		weapons[1] = weapon2;
-		weapons[2] = weapon3;
-		weapons[3] = weapon2;
-		weapons[4] = weapon1;
-		
-		//drawWeapon();
-		
+		weapon = app.loadImage("data/life.png");
 	}
 	
 	public void drawWeapon() {
-		//draw the weapon here
-//		app.fill(0, 0,255);
-//		app.ellipse(x, y, .2f, .2f);
-		if (currWeapon < weapons.length) {
-		//System.out.println("curr weapon is: " + currWeapon);
-		app.image(weapons[currWeapon], x, y, 0.6f, 0.6f);
+		if (!allCollected) {
+			app.image(weapon, x, y, 0.3f, 0.3f);
 		}
-		else {
-			app.fill(0, 0,255);
-			app.ellipse(x, y, .2f, .2f);
-		}
-		//return imageArray[currImage];
 	}
 	
 	public boolean isGrabbed(PVector v) {
@@ -64,14 +48,15 @@ public class WeaponPiece {
 	}
 	
 	public void nextWeapon() {
-		//change its location
-		x = random.nextFloat();
-		y = random.nextFloat();
+		if (random.nextBoolean()) {
+			x = random.nextFloat();
+			y = (float) ((float) random.nextFloat()*(0.7));
+		}
+		else {
+			x = random.nextFloat()*(-1);
+			y = (float) ((float) random.nextFloat()*(0.7))*(-1);
+		}
 		currWeapon++;
-		//change its image too
-//		if (imageArray[currImage+1] != null) {
-//			currImage++;
-//		}
 	}
 	
 }

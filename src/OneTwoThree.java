@@ -21,13 +21,12 @@ public class OneTwoThree extends PApplet {
 	private StatusBar bloodBar;
 	private StatusBar powerBar;
 	private PImage weaponImage;
-	private static final int NUM_WEAPON = 10;
-	private int weaponCollected = 0;
+	public static final int NUM_WEAPON = 5;
+	public int weaponCollected = 0;
 	private PImage bg;
 	private boolean moving = false;
 	private int lastDead;
 	private int deadWaitTime = 500;
-
 	TCPBodyReceiver kinectReader;
 	public static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 
@@ -83,7 +82,7 @@ public class OneTwoThree extends PApplet {
 		try {
 			kinectReader.start();
 		} catch (IOException e) {
-			System.out.println("Unable to connect to kinect server");
+			System.out.println("Unable to connect tao kinect server");
 			exit();
 		}
 
@@ -93,10 +92,7 @@ public class OneTwoThree extends PApplet {
 			image(bg, 0,0, width, height);
 			setScale(.5f);
 			noStroke();
-			//background(200,200,200);
 			fill(0,255,0);
-			
-			
 			//draw monster
 			//draw weapon
 			weapon.drawWeapon();
@@ -115,11 +111,14 @@ public class OneTwoThree extends PApplet {
 				PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
 				PVector handRight = person.getJoint(Body.HAND_RIGHT);
 				PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
-				arm.draw(handRight, elbowRight, shoulderRight, this);
+				arm.draw(handRight, elbowRight, shoulderRight, weaponCollected, this);
 				if (handRight != null && weapon.isGrabbed(handRight)) {
 					if (weaponCollected < NUM_WEAPON) {
 						weapon.nextWeapon();
 						weaponCollected++;
+					}
+					else if (weaponCollected == NUM_WEAPON) {
+						weapon.setCollected(true);
 					}
 				}
 			}
@@ -142,8 +141,9 @@ public class OneTwoThree extends PApplet {
 			} else {
 				moving = false;
 				lastDead = 0;
-			}
+			}	
 		}
+		
 	}
 		
 	/**
@@ -157,7 +157,11 @@ public class OneTwoThree extends PApplet {
 			ellipse(vec.x, vec.y, .1f,.1f);
 		}
 	}
-	
+//	private boolean checkGameWon(PVector v) {
+////		if (weaponCollected == NUM_WEAPON && )
+////		return true;
+////		return false;
+//	}
 	private boolean checkGameOver() {
 		if (arm.getState()==0) {
 			gameOver = true;
@@ -168,7 +172,7 @@ public class OneTwoThree extends PApplet {
 		}
 		return gameOver;
 	}
-
+	
 	public static void main(String[] args) {
 		PApplet.main(OneTwoThree.class.getName());
 	}
