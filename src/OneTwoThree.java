@@ -22,14 +22,9 @@ public class OneTwoThree extends PApplet {
 	private static final int NUM_WEAPON = 10;
 	private int weaponCollected = 0;
 	private PImage bg;
-	
 	private boolean moving = false;
 	private int lastDead;
-	private int deadWaitTime = 2000;
-	
-	private LinkedList<PVector> recentLocations;
-	//TO DO: define the threshold
-	private final float MOVEMENT_THRESHOLD = 0;
+	private int deadWaitTime = 500;
 	TCPBodyReceiver kinectReader;
 	public static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 
@@ -62,9 +57,8 @@ public class OneTwoThree extends PApplet {
 		monster = new Monster(this);
 		arm = new Arm(this);
 		weapon = new WeaponPiece(this);
-		bg = loadImage("data/Gamebgnd.jpg");
+		bg = loadImage("data/Gamebgnd.png");
 		//weaponImage = loadImage(weapon.drawWeapon());
-		recentLocations = new LinkedList<>();
 	}
 
 	public void setup(){
@@ -90,9 +84,11 @@ public class OneTwoThree extends PApplet {
 
 	}
 	public void draw(){
+		if(!gameOver) {
+		image(bg, 0,0, width, height);
 		setScale(.5f);
 		noStroke();
-		background(200,200,200);
+		//background(200,200,200);
 		fill(0,255,0);
 		
 		
@@ -103,7 +99,6 @@ public class OneTwoThree extends PApplet {
 		monster.draw(this);
 		
 		//draw person
-		//HOW TO DETECT MOVEMENT?
 		KinectBodyData bodyData1 = kinectReader.getMostRecentData();
 		KinectBodyData bodyData = kinectReader.getNextData();
 		if(bodyData == null) return;
@@ -119,109 +114,52 @@ public class OneTwoThree extends PApplet {
 					weaponCollected++;
 				}
 			}
-			PVector averageArm = new PVector(0,0,0);
-			int count = 0;
-			if (shoulderRight!=null){
-				averageArm.add(shoulderRight);
-				count++;
-			}
-			if (handRight!=null){
-				averageArm.add(handRight);
-				count++;
-			}
-			if (elbowRight!=null){
-				averageArm.add(elbowRight);
-				count++;
-			}
-			averageArm = averageArm.div(count);
-			updateQueue(averageArm);
-		}
-		if (monster.isAwake()) {
-			if (recentLocations!=null && recentLocations.size()>0) {
-				System.out.println(checkMovement());
-			}
-			if (moving == false){
-				if (recentLocations!=null && recentLocations.size()>0) {
-					moving = checkMovement();
-					if (moving) {
-						arm.setState(arm.getState()-1);
-						lastDead = millis();
-						System.out.println(moving + "+" + arm.getState());
+				if (monster.isAwake()) {
+					if (moving == false){
+						moving =  arm.isMoving();
+						if (moving) {
+							arm.setState(arm.getState()-1);
+							lastDead = millis();
+							System.out.println(moving + "+" + arm.getState());
+							fill(1,1,1);
+							this.ellipse(0, 0, 0.5f, 0.5f);
+							checkGameOver();
+						}
+					} else if(lastDead != 0 && millis() - lastDead > deadWaitTime){
+						moving = false;
+						lastDead = 0;
 					}
+				} else {
+					moving = false;
+					lastDead = 0;
 				}
 			}
-			if(lastDead !=0 && millis() - lastDead > deadWaitTime){
-				moving = false;
-				lastDead = 0;
+		}
+	}
+				
+			/**
+			 * Draws an ellipse in the x,y position of the vector (it ignores z).
+			 * Will do nothing is vec is null.  This is handy because get joint 
+			 * will return null if the joint isn't tracked. 
+			 * @param vec
+			 */
+			public void drawIfValid(PVector vec) {
+				if(vec != null) {
+					ellipse(vec.x, vec.y, .1f,.1f);
+				}
 			}
-		} else {
-			moving = false;
-		}
-		
-		if (arm.getState()==0) {
-			gameOver = true;
-		}
-		
-		if (gameOver) {
-			//TO DO: a scene for game over
-			background(0,0,0);
-		}
-	}
-		
-	/**
-	 * Draws an ellipse in the x,y position of the vector (it ignores z).
-	 * Will do nothing is vec is null.  This is handy because get joint 
-	 * will return null if the joint isn't tracked. 
-	 * @param vec
-	 */
-	public void drawIfValid(PVector vec) {
-		if(vec != null) {
-			ellipse(vec.x, vec.y, .1f,.1f);
-		}
-
-	}
-	
-//	private void updateQueue(PVector currentLocation) {
-//		if (recentLocations!=null && recentLocations.size()>0) {
-//			PVector lastLocation = recentLocations.getLast();
-//			PVector currentDif = currentLocation.sub(lastLocation);
-//			recentLocations.offer(currentDif);
-//			if (recentLocations.size()>5) {
-//				recentLocations.poll();
-//			}
-//		} else {
-//			recentLocations.add(new PVector(0,0,0));
-//		}
-//	}
-	
-	private void updateQueue(PVector currentLocation) {
-		if (recentLocations!=null && recentLocations.size()>0) {
-			recentLocations.offer(currentLocation);
-			if (recentLocations.size()>5) {
-				recentLocations.poll();
+			
+			private boolean checkGameOver() {
+				if (arm.getState()<0) {
+					gameOver = true;
+				}
+				if (gameOver) {
+					//TO DO: a scene for game over
+					background(0,0,0);
+				}
+				return gameOver;
 			}
-		} else {
-			recentLocations.offer(currentLocation);
-		}
-	}
-	
-	private boolean checkMovement() {
-		PVector sumDifferent = new PVector(0,0,0);
-		PVector preLocation = recentLocations.getFirst();
-		for (int i = 0; i < recentLocations.size(); i++) {
-			if (i>0){
-				PVector location = recentLocations.get(i);
-				sumDifferent.add(location.sub(preLocation));
-			}
-		}
-		float dif = sumDifferent.x + sumDifferent.y + sumDifferent.z;
-		System.out.println("Dif: " + dif);
-		if (dif > MOVEMENT_THRESHOLD) {
-			return true;
-		}
-		return false;
-	}
-
+			
 	public static void main(String[] args) {
 		PApplet.main(OneTwoThree.class.getName());
 		
