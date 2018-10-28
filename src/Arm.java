@@ -4,8 +4,8 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 public class Arm {
-	private final double MOVEMENT_THRESHOLD = 0.02;
-	public int state = 4;
+	private final double MOVEMENT_THRESHOLD = 0.05;
+	public int state = 5;
 	private PApplet app;
 	private PVector hand;
 	private PVector shoulder;
@@ -37,13 +37,13 @@ public class Arm {
 		shoulderQueue.add(shoulder);
 		elbowQueue.add(elbow);
 		
-		if (handQueue.size() > 5) {
+		if (handQueue.size() > 10) {
 			preHand = handQueue.poll();
 		}
-		if (shoulderQueue.size() > 5) {
+		if (shoulderQueue.size() > 10) {
 			preShoulder = shoulderQueue.poll();
 		}
-		if (elbowQueue.size() > 5) {
+		if (elbowQueue.size() > 10) {
 			preElbow = elbowQueue.poll();
 		}
 		//draw entire arm
@@ -53,7 +53,7 @@ public class Arm {
 		//draw joint
 		drawJoint (hand);
 		drawJoint (elbow);
-		drawJoint(shoulder);
+		drawJoint (shoulder);
 		//draw joint
 		drawJoint (preHand);
 		drawJoint (preElbow);
@@ -93,7 +93,7 @@ public class Arm {
 			float difZ = Math.abs(preHand.z - hand.z);
 			isMoving = (difX > MOVEMENT_THRESHOLD || difY > MOVEMENT_THRESHOLD || difZ > MOVEMENT_THRESHOLD);
 			if (isMoving) {
-				System.out.println("movement is detected" + difX);
+				System.out.println("movement is detected" + difX + " " + difY + " " + difZ);
 				return isMoving;
 			}
 		}
@@ -103,7 +103,7 @@ public class Arm {
 			float difZ = Math.abs(preShoulder.z - shoulder.z);
 			isMoving = difX > MOVEMENT_THRESHOLD || difY > MOVEMENT_THRESHOLD || difZ > MOVEMENT_THRESHOLD;
 			if (isMoving) {
-				System.out.println("movement is detected" + difX);
+				System.out.println("movement is detected" + difX + " " + difY + " " + difZ);
 				return isMoving;
 			}
 		}
