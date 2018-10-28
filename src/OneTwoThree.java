@@ -18,6 +18,8 @@ public class OneTwoThree extends PApplet {
 	public Monster monster;
 	public Arm arm;
 	public WeaponPiece weapon;
+	private StatusBar bloodBar;
+	private StatusBar powerBar;
 	private PImage weaponImage;
 	public static final int NUM_WEAPON = 5;
 	public int weaponCollected = 0;
@@ -58,6 +60,9 @@ public class OneTwoThree extends PApplet {
 		arm = new Arm(this);
 		weapon = new WeaponPiece(this);
 		bg = loadImage("data/Gamebgnd.png");
+		bloodBar = new StatusBar(this, "life", .5f);
+		powerBar = new StatusBar(this, "power", -1f);
+		//weaponImage = loadImage(weapon.drawWeapon());
 	}
 
 	public void setup(){
@@ -93,6 +98,9 @@ public class OneTwoThree extends PApplet {
 			weapon.drawWeapon();
 			//image(weaponImage,(float) -0.5, (float)-0.5, 2f, 2f);
 			monster.draw(this);
+			// draw blood bar
+			bloodBar.draw(arm.getState());
+			powerBar.draw(this.weaponCollected);
 			
 			//draw person
 			KinectBodyData bodyData1 = kinectReader.getMostRecentData();
@@ -121,6 +129,7 @@ public class OneTwoThree extends PApplet {
 						arm.setState(arm.getState()-1);
 						lastDead = millis();
 						System.out.println(moving + "+" + arm.getState());
+						bloodBar.draw(arm.getState());
 						fill(1,1,1);
 						this.ellipse(0, 0, 0.5f, 0.5f);
 						checkGameOver();
