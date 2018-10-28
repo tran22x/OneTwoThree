@@ -30,7 +30,7 @@ public class WeaponPiece {
 			y = (float) ((float) random.nextFloat()*(0.7))*(-1);
 		}
 		this.app = app;
-		weapon = app.loadImage("data/life.png");
+		weapon = app.loadImage("data/light.png");
 	}
 	
 	public void drawWeapon() {

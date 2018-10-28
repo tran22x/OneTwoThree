@@ -5,7 +5,7 @@ import processing.core.PVector;
 import processing.core.PImage;
 
 public class Arm {
-	private final double MOVEMENT_THRESHOLD = 0.05;
+	private final double MOVEMENT_THRESHOLD = 0.08;
 	public int state = 5;
 	private PApplet app;
 	private PVector hand;
@@ -28,7 +28,7 @@ public class Arm {
 		handQueue = new LinkedList<>();
 		shoulderQueue = new LinkedList<>();
 		elbowQueue = new LinkedList<>();
-		powerPic = app.loadImage("data/life.png");
+		powerPic = app.loadImage("data/light.png");
 	}
 	
 	public void draw(PVector hand, PVector elbow, PVector shoulder, int power, PApplet app) {
