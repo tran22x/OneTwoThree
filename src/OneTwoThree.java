@@ -1,7 +1,5 @@
 
 import java.io.IOException;
-import java.util.Deque;
-import java.util.LinkedList;
 
 import edu.mtholyoke.cs.comsc243.kinect.Body;
 import edu.mtholyoke.cs.comsc243.kinect.KinectBodyData;
@@ -12,23 +10,27 @@ import processing.core.PVector;
 
 public class OneTwoThree extends PApplet {
 	
-	public static int PROJECTOR_WIDTH = 1024;
-	public static int PROJECTOR_HEIGHT = 786;
-	public boolean gameOver;
-	public Monster monster;
-	public Arm arm;
-	public WeaponPiece weapon;
+	private static int PROJECTOR_WIDTH = 1024;
+	private static int PROJECTOR_HEIGHT = 786;
+	
+	private boolean gameOver;
+	private boolean gameStart;
+	
+	private Monster monster;
+	private Arm arm;
+	private WeaponPiece weapon;
 	private StatusBar bloodBar;
 	private StatusBar powerBar;
-	private PImage weaponImage;
-	public static final int NUM_WEAPON = 5;
-	public int weaponCollected = 0;
+	private PImage instructionImg;
+	private PImage startButtonImg;
+	private static final int NUM_WEAPON = 5;
+	private int weaponCollected = 0;
 	private PImage bg;
 	private boolean moving = false;
 	private int lastDead;
 	private int deadWaitTime = 500;
 	TCPBodyReceiver kinectReader;
-	public static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
+	private static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 
 	public void createWindow(boolean useP2D, boolean isFullscreen, float windowsScale) {
 		if (useP2D) {
@@ -62,7 +64,8 @@ public class OneTwoThree extends PApplet {
 		bg = loadImage("data/Gamebgnd.png");
 		bloodBar = new StatusBar(this, "life", .5f);
 		powerBar = new StatusBar(this, "power", -1f);
-		//weaponImage = loadImage(weapon.drawWeapon());
+		instructionImg = loadImage("data/instruction.png");
+		startButtonImg = loadImage("data/startbutton.png");
 	}
 
 	public void setup(){
@@ -74,7 +77,7 @@ public class OneTwoThree extends PApplet {
 		try {
 			kinectReader = new KinectBodyDataProvider("test.kinect", 10);
 		} catch (IOException e) {
-			System.out.println("Unable to creat e kinect producer");
+			System.out.println("Unable to create kinect producer");
 		}
 		 */
 		
@@ -87,62 +90,71 @@ public class OneTwoThree extends PApplet {
 		}
 
 	}
+	
 	public void draw(){
 		if(!gameOver) {
 			image(bg, 0,0, width, height);
 			setScale(.5f);
 			noStroke();
-			fill(0,255,0);
-			//draw monster
 			//draw weapon
 			weapon.drawWeapon();
-			//image(weaponImage,(float) -0.5, (float)-0.5, 2f, 2f);
+			//draw monster
 			monster.draw(this);
-			// draw blood bar
+			// draw blood bar and power bar
 			bloodBar.draw(arm.getState());
 			powerBar.draw(this.weaponCollected);
 			
 			//draw person
-			KinectBodyData bodyData1 = kinectReader.getMostRecentData();
 			KinectBodyData bodyData = kinectReader.getNextData();
 			if(bodyData == null) return;
 			Body person = bodyData.getPerson(0);
+			if (!gameStart) {
+				// load instruction and start button
+				image(instructionImg, -2f, -.5f, 4f, 2f);
+				image(startButtonImg, -.2f, -.6f, .4f, .2f);
+			}
 			if(person != null){
 				PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
 				PVector handRight = person.getJoint(Body.HAND_RIGHT);
 				PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
 				arm.draw(handRight, elbowRight, shoulderRight, weaponCollected, this);
-				if (handRight != null && weapon.isGrabbed(handRight)) {
-					if (weaponCollected < NUM_WEAPON) {
-						weapon.nextWeapon();
-						weaponCollected++;
-						powerBar.draw(weaponCollected);
-					}
+				// if game has started and hand grab weapon, update power bar
+				if (handRight != null && weapon.isGrabbed(handRight) && gameStart && weaponCollected < NUM_WEAPON) {
+					weapon.nextWeapon();
+					weaponCollected++;
+					powerBar.draw(weaponCollected);
 				}
-				if (handRight!=null && weaponCollected >= NUM_WEAPON) {
+				// check if the monster has been beaten if all weapons have been collected
+				if (handRight!=null && weaponCollected >= NUM_WEAPON && gameStart) {
 					weapon.setCollected(true);
 					checkGameWon(handRight);
 				}
+				// if game has not been started, check if the start button is touched
+				if (handRight!=null && !gameStart) {
+					gameStart = checkTouchStartButton(handRight);
+				}
 			}
-			if (monster.isAwake()) {
+			// check movement if the monster is awake
+			if (monster.isAwake() && gameStart) {
 				if (moving == false){
 					moving =  arm.isMoving();
+					// if arm is moving, update life
 					if (moving) {
 						arm.setState(arm.getState()-1);
 						lastDead = millis();
-						System.out.println(moving + "+" + arm.getState());
 						bloodBar.draw(arm.getState());
-						fill(1,1,1);
 						checkGameOver();
 					}
+				// give the player sometime to stop if they just got caught moving
 				} else if(lastDead != 0 && millis() - lastDead > deadWaitTime){
 					moving = false;
 					lastDead = 0;
 				}
+			// reset when the monster goes to sleep
 			} else {
 				moving = false;
 				lastDead = 0;
-			}	
+			}
 		}
 	}
 		
@@ -157,8 +169,22 @@ public class OneTwoThree extends PApplet {
 			ellipse(vec.x, vec.y, .1f,.1f);
 		}
 	}
+	
+	/**
+	 * Check if the start button is touched to start the game
+	 * @param hand the hand
+	 * @return true if the button is touched
+	 */
+	private boolean checkTouchStartButton(PVector hand) {
+		return (hand.x > -.2f && hand.x < .2f && hand.y > -.6f && hand.y < -.4f);
+	}
+	
+	/**
+	 * Win the game if the monster is touched
+	 * @param v hand
+	 * @return true if the monster is touched
+	 */
 	private boolean checkGameWon(PVector v) {
-		System.out.print("Check game wwon");
 		if (monster.touchedMonster(v)) {
 			background(255,255,255);
 			gameOver = true;
@@ -166,7 +192,11 @@ public class OneTwoThree extends PApplet {
 		}
 		return false;
 	}
-	private boolean checkGameOver() {
+	
+	/**
+	 * If life is gone, set game over
+	 */
+	private void checkGameOver() {
 		if (arm.getState()==0) {
 			gameOver = true;
 		}
@@ -175,7 +205,6 @@ public class OneTwoThree extends PApplet {
 			background(0,0,0);
 			this.image(loadImage("data/gameover.png"), -1 , 0, 3f, 1f);
 		}
-		return gameOver;
 	}
 	
 	public static void main(String[] args) {
