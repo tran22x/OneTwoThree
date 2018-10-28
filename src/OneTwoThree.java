@@ -132,6 +132,7 @@ public class OneTwoThree extends PApplet {
 				// if game has not been started, check if the start button is touched
 				if (handRight!=null && !gameStart) {
 					gameStart = checkTouchStartButton(handRight);
+					if (gameStart) monster.startTimer();
 				}
 			}
 			// check movement if the monster is awake

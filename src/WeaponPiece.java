@@ -14,7 +14,7 @@ public class WeaponPiece {
 	private PImage weapon;
 	private int currWeapon = 0;
 	public boolean allCollected = false;
-	final double THRESHOLD = .3f;//radius of weapon
+	final double THRESHOLD = .2f;//radius of weapon
 
 	public void setCollected (boolean b) {
 		allCollected = b;
@@ -50,7 +50,7 @@ public class WeaponPiece {
 	public void nextWeapon() {
 		if (random.nextBoolean()) {
 			x = random.nextFloat();
-			y = (float) ((float) random.nextFloat()*(0.7));
+			y = (float) ((float) random.nextFloat()*(0.8));
 		}
 		else {
 			x = random.nextFloat()*(-1);

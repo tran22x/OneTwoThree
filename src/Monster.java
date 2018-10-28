@@ -1,4 +1,6 @@
 
+import java.util.Random;
+
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
@@ -7,8 +9,9 @@ public class Monster {
 	
 	public static enum State {AWAKE, SLEEPING};
 	public State state = State.SLEEPING;
-	private int time;
+	private int time = Integer.MAX_VALUE;
 	private int wait = 8000;
+	private Random random = new Random();
 	private PApplet app;
 	public final float x = (float) -2.4;
 	public final float y = (float) -0.5;
@@ -17,9 +20,13 @@ public class Monster {
 	public final int MONSTER_SIZE = 2;
 	public Monster (PApplet app) {
 		this.app = app;
-		time = app.millis();
+		//time = app.millis();
 		sleeping = app.loadImage("data/Monster-Sleeping.png");
 		awake = app.loadImage("data/Monster-Awake.png");
+	}
+	
+	public void startTimer () {
+		time = app.millis();
 	}
 	
 	public void draw (PApplet app) {
@@ -28,6 +35,7 @@ public class Monster {
 				state = State.SLEEPING;
 			}
 			else state = State.AWAKE;
+			wait = random.nextInt(5000 + 1 - 2000) + 2000; //generate random wait time between 5 - 8 seconds
 		    time = app.millis();//also update the stored time
 		}
 		switch(state) {
@@ -43,7 +51,6 @@ public class Monster {
 	private void drawSleeping (PApplet app) {
 		app.image(sleeping,x,y, MONSTER_SIZE, MONSTER_SIZE);
 		app.fill(255,255,255);
-		//app.rect(x, y, MONSTER_SIZE, MONSTER_SIZE);
 	}
 	
 	private void drawAwake (PApplet app) {
