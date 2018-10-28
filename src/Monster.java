@@ -1,6 +1,7 @@
 
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.core.PVector;
 
 public class Monster {
 	
@@ -41,10 +42,20 @@ public class Monster {
 	
 	private void drawSleeping (PApplet app) {
 		app.image(sleeping,x,y, MONSTER_SIZE, MONSTER_SIZE);
+		app.fill(255,255,255);
+		app.rect(x, y, MONSTER_SIZE, MONSTER_SIZE);
 	}
 	
 	private void drawAwake (PApplet app) {
 		app.image(awake,x,y, MONSTER_SIZE, MONSTER_SIZE);
+	}
+	
+	public boolean touchedMonster (PVector v) {
+		if (v.x <= x+MONSTER_SIZE && v.y < y+MONSTER_SIZE) {
+			app.ellipse(0, 0, 0.5f, 0.5f);
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean isAwake() {

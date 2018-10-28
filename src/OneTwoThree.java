@@ -116,9 +116,11 @@ public class OneTwoThree extends PApplet {
 					if (weaponCollected < NUM_WEAPON) {
 						weapon.nextWeapon();
 						weaponCollected++;
+						powerBar.draw(weaponCollected);
 					}
 					else if (weaponCollected == NUM_WEAPON) {
 						weapon.setCollected(true);
+						checkGameWon(handRight);
 					}
 				}
 			}
@@ -131,7 +133,6 @@ public class OneTwoThree extends PApplet {
 						System.out.println(moving + "+" + arm.getState());
 						bloodBar.draw(arm.getState());
 						fill(1,1,1);
-						this.ellipse(0, 0, 0.5f, 0.5f);
 						checkGameOver();
 					}
 				} else if(lastDead != 0 && millis() - lastDead > deadWaitTime){
@@ -143,7 +144,6 @@ public class OneTwoThree extends PApplet {
 				lastDead = 0;
 			}	
 		}
-		
 	}
 		
 	/**
@@ -157,11 +157,14 @@ public class OneTwoThree extends PApplet {
 			ellipse(vec.x, vec.y, .1f,.1f);
 		}
 	}
-//	private boolean checkGameWon(PVector v) {
-////		if (weaponCollected == NUM_WEAPON && )
-////		return true;
-////		return false;
-//	}
+	private boolean checkGameWon(PVector v) {
+		if (monster.touchedMonster(v)) {
+			background(255,255,255);
+			gameOver = true;
+			return true;
+		}
+		return false;
+	}
 	private boolean checkGameOver() {
 		if (arm.getState()==0) {
 			gameOver = true;
@@ -169,6 +172,7 @@ public class OneTwoThree extends PApplet {
 		if (gameOver) {
 			//TO DO: a scene for game over
 			background(0,0,0);
+			this.image(loadImage("data/gameover.png"), -1 , 0, 3f, 1f);
 		}
 		return gameOver;
 	}
