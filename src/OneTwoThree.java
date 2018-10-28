@@ -118,10 +118,10 @@ public class OneTwoThree extends PApplet {
 						weaponCollected++;
 						powerBar.draw(weaponCollected);
 					}
-					else if (weaponCollected == NUM_WEAPON) {
-						weapon.setCollected(true);
-						checkGameWon(handRight);
-					}
+				}
+				if (handRight!=null && weaponCollected >= NUM_WEAPON) {
+					weapon.setCollected(true);
+					checkGameWon(handRight);
 				}
 			}
 			if (monster.isAwake()) {
@@ -158,6 +158,7 @@ public class OneTwoThree extends PApplet {
 		}
 	}
 	private boolean checkGameWon(PVector v) {
+		System.out.print("Check game wwon");
 		if (monster.touchedMonster(v)) {
 			background(255,255,255);
 			gameOver = true;

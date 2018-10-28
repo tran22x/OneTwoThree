@@ -43,7 +43,7 @@ public class Monster {
 	private void drawSleeping (PApplet app) {
 		app.image(sleeping,x,y, MONSTER_SIZE, MONSTER_SIZE);
 		app.fill(255,255,255);
-		app.rect(x, y, MONSTER_SIZE, MONSTER_SIZE);
+		//app.rect(x, y, MONSTER_SIZE, MONSTER_SIZE);
 	}
 	
 	private void drawAwake (PApplet app) {
@@ -51,7 +51,7 @@ public class Monster {
 	}
 	
 	public boolean touchedMonster (PVector v) {
-		if (v.x <= x+MONSTER_SIZE && v.y < y+MONSTER_SIZE) {
+		if (v.x <= x+MONSTER_SIZE-0.2f && v.y <= y+MONSTER_SIZE) {
 			app.ellipse(0, 0, 0.5f, 0.5f);
 			return true;
 		}
