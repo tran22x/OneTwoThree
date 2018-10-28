@@ -2,6 +2,7 @@ import java.util.LinkedList;
 
 import processing.core.PApplet;
 import processing.core.PVector;
+import processing.core.PImage;
 
 public class Arm {
 	private final double MOVEMENT_THRESHOLD = 0.05;
@@ -19,18 +20,23 @@ public class Arm {
 	private LinkedList<PVector> shoulderQueue;
 	private LinkedList<PVector> elbowQueue;
 	
+	private PImage powerPic;
+	private int power;
+	
 	public Arm (PApplet app) {
 		this.app = app;
 		handQueue = new LinkedList<>();
 		shoulderQueue = new LinkedList<>();
 		elbowQueue = new LinkedList<>();
+		powerPic = app.loadImage("data/life.png");
 	}
 	
-	public void draw(PVector hand, PVector elbow, PVector shoulder, PApplet app) {
+	public void draw(PVector hand, PVector elbow, PVector shoulder, int power, PApplet app) {
 		// update position of the arm
 		this.hand = hand;
 		this.elbow = elbow;
 		this.shoulder = shoulder;
+		this.power = power;
 		
 		// push new position into the queue
 		handQueue.add(hand);
@@ -51,13 +57,19 @@ public class Arm {
 		drawConnection(elbow, shoulder);
 		
 		//draw joint
-		drawJoint (hand);
+		if (power == 0) {
+			drawJoint (hand);
+			drawJoint (preHand);
+		}
+		else if (power > 0) {
+			drawPower(hand);
+//			drawPower(preHand);
+		}
 		drawJoint (elbow);
 		drawJoint(shoulder);
 		//draw joint
-		drawJoint (preHand);
-		drawJoint (preElbow);
-		drawJoint (preShoulder);
+//		drawJoint (preElbow);
+//		drawJoint (preShoulder);
 	}
 	
 	public int getState() {
@@ -69,16 +81,23 @@ public class Arm {
 		this.state = state;
 	}
 	
+	private void drawPower (PVector v) {
+		if (v != null) {
+			float f = 0.1f*power;
+			app.image(powerPic, v.x - f/2, v.y - f/2, f, f);
+		}
+	}
+	
 	private void drawJoint (PVector v) {
 		if (v != null) {
-			app.fill(255, 0, 0);
-			app.ellipse(v.x, v.y, .05f,.05f);
+			app.fill(0, 0, 0);
+			app.ellipse(v.x, v.y, .01f,.01f);
 		}
 	}
 	
 	private void drawConnection (PVector v1, PVector v2) {
 		if (v1 != null && v2 != null) {
-			app.stroke(255, 255,255);
+			app.stroke(0, 0,0);
 			app.strokeWeight(.01f);
 			app.line(v1.x,v1.y, v2.x, v2.y);
 			
