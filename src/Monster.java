@@ -8,9 +8,9 @@ import processing.core.PVector;
 public class Monster {
 	
 	public static enum State {AWAKE, SLEEPING};
-	public State state = State.SLEEPING;
+	private State state = State.SLEEPING;
 	private int time = Integer.MAX_VALUE;
-	private int wait = 8000;
+	private int wait = 2000;
 	private Random random = new Random();
 	private PApplet app;
 	public final float x = (float) -2.4;
@@ -45,7 +45,7 @@ public class Monster {
 		case SLEEPING:
 			drawSleeping(app);
 			break;
-	}
+		}
 	}
 	
 	private void drawSleeping (PApplet app) {
@@ -58,7 +58,7 @@ public class Monster {
 	}
 	
 	public boolean touchedMonster (PVector v) {
-		if (v.x <= x+MONSTER_SIZE-0.2f && v.y <= y+MONSTER_SIZE) {
+		if (v.x <= x+MONSTER_SIZE-0.5f && v.y <= y+MONSTER_SIZE) {
 			app.ellipse(0, 0, 0.5f, 0.5f);
 			return true;
 		}
@@ -67,5 +67,9 @@ public class Monster {
 	
 	public boolean isAwake() {
 		return state == State.AWAKE;
+	}
+	
+	public void setStage(State newState) {
+		this.state = newState;
 	}
 }

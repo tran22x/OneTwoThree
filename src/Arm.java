@@ -52,6 +52,7 @@ public class Arm {
 		if (elbowQueue.size() > 10) {
 			preElbow = elbowQueue.poll();
 		}
+		
 		//draw entire arm
 		drawConnection(hand, elbow);
 		drawConnection(elbow, shoulder);
@@ -59,17 +60,12 @@ public class Arm {
 		//draw joint
 		if (power == 0) {
 			drawJoint (hand);
-			drawJoint (preHand);
 		}
 		else if (power > 0) {
 			drawPower(hand);
-//			drawPower(preHand);
 		}
 		drawJoint (elbow);
 		drawJoint (shoulder);
-		//draw joint
-//		drawJoint (preElbow);
-//		drawJoint (preShoulder);
 	}
 	
 	public int getState() {
@@ -100,7 +96,6 @@ public class Arm {
 			app.stroke(0, 0,0);
 			app.strokeWeight(.01f);
 			app.line(v1.x,v1.y, v2.x, v2.y);
-			
 		}
 	}
 	
@@ -112,7 +107,6 @@ public class Arm {
 			float difZ = Math.abs(preHand.z - hand.z);
 			isMoving = (difX > MOVEMENT_THRESHOLD || difY > MOVEMENT_THRESHOLD || difZ > MOVEMENT_THRESHOLD);
 			if (isMoving) {
-				System.out.println("movement is detected" + difX + " " + difY + " " + difZ);
 				return isMoving;
 			}
 		}
@@ -122,7 +116,6 @@ public class Arm {
 			float difZ = Math.abs(preShoulder.z - shoulder.z);
 			isMoving = difX > MOVEMENT_THRESHOLD || difY > MOVEMENT_THRESHOLD || difZ > MOVEMENT_THRESHOLD;
 			if (isMoving) {
-				System.out.println("movement is detected" + difX + " " + difY + " " + difZ);
 				return isMoving;
 			}
 		}
@@ -132,10 +125,22 @@ public class Arm {
 			float difZ = Math.abs(preElbow.z - elbow.z);
 			isMoving = difX > MOVEMENT_THRESHOLD || difY > MOVEMENT_THRESHOLD || difZ > MOVEMENT_THRESHOLD;
 			if (isMoving) {
-				System.out.println("movement is detected" + difX + " " + difY + " " + difZ);
 				return isMoving;
 			}
 		}
 		return isMoving;
+	}
+	
+	public PVector getLastPosition() {
+		if (handQueue.getLast() != null) {
+			return handQueue.getLast();
+		}
+		if (elbowQueue.getLast() != null) {
+			return elbowQueue.getLast();
+		}
+		if (shoulderQueue.getLast() != null) {
+			return shoulderQueue.getLast();
+		}
+		return null;
 	}
 }
