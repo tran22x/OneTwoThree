@@ -45,7 +45,7 @@ public class Monster {
 	}
 
 	private void updateTimer(PApplet app) {
-		if(app.millis() - time >= wait){
+		if(app.millis() - time >= wait){ //if time passed is greater or equal to wait time then switch state
 			if (state == State.AWAKE) {
 				state = State.SLEEPING;
 			}
@@ -64,6 +64,7 @@ public class Monster {
 		app.image(awake,x,y, MONSTER_SIZE, MONSTER_SIZE);
 	}
 	
+	/** Check if monster has been touched**/
 	public boolean touchedMonster (PVector v) {
 		if (v.x <= x+MONSTER_SIZE-0.5f && v.y <= y+MONSTER_SIZE) {
 			app.ellipse(0, 0, 0.5f, 0.5f);

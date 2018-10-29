@@ -94,11 +94,15 @@ public class Arm {
 	private void drawConnection (PVector v1, PVector v2) {
 		if (v1 != null && v2 != null) {
 			app.stroke(0, 0,0);
-			app.strokeWeight(.01f);
+			app.strokeWeight(.02f);
 			app.line(v1.x,v1.y, v2.x, v2.y);
 		}
 	}
 	
+	/**
+	 * Check if the arm is moving based on either hand or elbow or shoulder is moving
+	 * @return true if one of them is moving
+	 */
 	public boolean isMoving() {
 		boolean isMoving = false;
 		if (preHand!=null && hand!=null) {
@@ -131,6 +135,10 @@ public class Arm {
 		return isMoving;
 	}
 	
+	/**
+	 * Get either last position of hand, elbow or shoulder if either of them is available
+	 * @return the PVector of the position
+	 */
 	public PVector getLastPosition() {
 		if (handQueue.getLast() != null) {
 			return handQueue.getLast();

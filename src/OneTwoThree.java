@@ -7,6 +7,15 @@ import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
 
+/**
+ * The game tracks user’s right arm. User needs to collects 5 power balls when the monster is sleeping. 
+ * If the monster is awake and the arm is moving then the user loses their power. 
+ * They have 5 power levels to lose. 
+ * When all power balls are collected, the monster is defeated if touched.
+ * User instruction is shown on screen before the game starts.
+ * @author Natalie Truong and Olive Tran
+ *
+ */
 public class OneTwoThree extends PApplet {
 	
 	private static int PROJECTOR_WIDTH = 1024;
