@@ -1,4 +1,3 @@
-
 import java.io.IOException;
 
 import edu.mtholyoke.cs.comsc243.kinect.Body;
@@ -12,7 +11,7 @@ public class OneTwoThree extends PApplet {
 	
 	private static int PROJECTOR_WIDTH = 1024;
 	private static int PROJECTOR_HEIGHT = 786;
-	private static final int NUM_WEAPON = 5;
+	private static final int NUM_POWER = 5;
 	private static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 	
 	private boolean gameOver;
@@ -21,7 +20,7 @@ public class OneTwoThree extends PApplet {
 	
 	private Monster monster;
 	private Arm arm;
-	private WeaponPiece weapon;
+	private Power power;
 	private StatusBar bloodBar;
 	private StatusBar powerBar;
 	
@@ -33,7 +32,7 @@ public class OneTwoThree extends PApplet {
 	private PImage winbg;
 	private PImage clawImage;
 	
-	private int weaponCollected = 0;
+	private int powerCollected = 0;
 	private boolean moving = false;
 	private int lastDead;
 	private int deadWaitTime = 500;
@@ -67,7 +66,7 @@ public class OneTwoThree extends PApplet {
 		createWindow(true, true, .5f);
 		monster = new Monster(this);
 		arm = new Arm(this);
-		weapon = new WeaponPiece(this);
+		power = new Power(this);
 		// load images
 		bg = loadImage("data/Gamebgnd.png");
 		winbg = loadImage("data/Gamebgnd_win.png");
@@ -92,8 +91,8 @@ public class OneTwoThree extends PApplet {
 	
 	public void draw(){
 		updateSurrounding();
-		//draw weapon
-		weapon.drawWeapon();
+		//draw power
+		power.drawPower();
 		//draw person
 		KinectBodyData bodyData = kinectReader.getNextData();
 		if(bodyData == null) return;
@@ -108,14 +107,14 @@ public class OneTwoThree extends PApplet {
 			PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
 			PVector handRight = person.getJoint(Body.HAND_RIGHT);
 			PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
-			arm.draw(handRight, elbowRight, shoulderRight, weaponCollected, this);
-			// if game has started and hand grab weapon, update power bar
-			if (handRight != null && gameStart && weaponCollected < NUM_WEAPON) {
-				checkWeaponGrabbed(handRight);
+			arm.draw(handRight, elbowRight, shoulderRight, powerCollected, this);
+			// if game has started and hand grab power, update power bar
+			if (handRight != null && gameStart && powerCollected < NUM_POWER) {
+				checkPowerGrabbed(handRight);
 			}
-			// check if the monster has been beaten if all weapons have been collected
-			if (handRight!=null && weaponCollected >= NUM_WEAPON && gameStart) {
-				weapon.setCollected(true);
+			// check if the monster has been beaten if all powers have been collected
+			if (handRight!=null && powerCollected >= NUM_POWER && gameStart) {
+				power.setCollected(true);
 				checkGameWon();
 			}
 			// if game has not been started, check if the start button is touched
@@ -157,14 +156,14 @@ public class OneTwoThree extends PApplet {
 		monster.draw(this);
 		// draw blood bar and power bar
 		bloodBar.draw(arm.getState());
-		powerBar.draw(this.weaponCollected);
+		powerBar.draw(this.powerCollected);
 	}
 	
-	private void checkWeaponGrabbed(PVector hand) {
-		if (weapon.isGrabbed(hand)) {
-			weapon.nextWeapon();
-			weaponCollected++;
-			powerBar.draw(weaponCollected);
+	private void checkPowerGrabbed(PVector hand) {
+		if (power.isGrabbed(hand)) {
+			power.nextPower();
+			powerCollected++;
+			powerBar.draw(powerCollected);
 		}
 	}
 	
