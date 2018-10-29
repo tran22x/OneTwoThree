@@ -131,15 +131,16 @@ public class Arm {
 		return isMoving;
 	}
 	
-	public PVector getHand() {
-		return handQueue.getLast();
-	}
-	
-	public PVector getElbow() {
-		return elbowQueue.getLast();
-	}
-	
-	public PVector getShoulder() {
-		return shoulderQueue.getLast();
+	public PVector getLastPosition() {
+		if (handQueue.getLast() != null) {
+			return handQueue.getLast();
+		}
+		if (elbowQueue.getLast() != null) {
+			return elbowQueue.getLast();
+		}
+		if (shoulderQueue.getLast() != null) {
+			return shoulderQueue.getLast();
+		}
+		return null;
 	}
 }

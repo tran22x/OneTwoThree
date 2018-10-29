@@ -68,6 +68,7 @@ public class OneTwoThree extends PApplet {
 		monster = new Monster(this);
 		arm = new Arm(this);
 		weapon = new WeaponPiece(this);
+		// load images
 		bg = loadImage("data/Gamebgnd.png");
 		winbg = loadImage("data/Gamebgnd_win.png");
 		bloodBar = new StatusBar(this, "life", .5f);
@@ -79,19 +80,7 @@ public class OneTwoThree extends PApplet {
 		clawImage = loadImage("data/claw.png");
 	}
 
-	public void setup(){
-
-		/*
-		 * use this code to run your PApplet from data recorded by recorder 
-		 */
-		/*
-		try {
-			kinectReader = new KinectBodyDataProvider("test.kinect", 10);
-		} catch (IOException e) {
-			System.out.println("Unable to create kinect producer");
-		}
-		 */
-		
+	public void setup(){	
 		kinectReader = new TCPBodyReceiver("138.110.92.93", 8008);
 		try {
 			kinectReader.start();
@@ -99,29 +88,17 @@ public class OneTwoThree extends PApplet {
 			System.out.println("Unable to connect tao kinect server");
 			exit();
 		}
-
 	}
 	
 	public void draw(){
-		if (gameWon) {
-			image(winbg, 0,0, width, height);
-		} else {
-			image(bg, 0,0, width, height);
-		}
-		setScale(.5f);
-		noStroke();
+		updateSurrounding();
 		//draw weapon
 		weapon.drawWeapon();
-		//draw monster
-		monster.draw(this);
-		// draw blood bar and power bar
-		bloodBar.draw(arm.getState());
-		powerBar.draw(this.weaponCollected);
-		
 		//draw person
 		KinectBodyData bodyData = kinectReader.getNextData();
 		if(bodyData == null) return;
 		Body person = bodyData.getPerson(0);
+		// draw instruction
 		if (!gameStart) {
 			// load instruction and start button
 			image(instructionImg, -2f, -.5f, 4f, 2f);
@@ -133,10 +110,8 @@ public class OneTwoThree extends PApplet {
 			PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
 			arm.draw(handRight, elbowRight, shoulderRight, weaponCollected, this);
 			// if game has started and hand grab weapon, update power bar
-			if (handRight != null && weapon.isGrabbed(handRight) && gameStart && weaponCollected < NUM_WEAPON) {
-				weapon.nextWeapon();
-				weaponCollected++;
-				powerBar.draw(weaponCollected);
+			if (handRight != null && gameStart && weaponCollected < NUM_WEAPON) {
+				checkWeaponGrabbed(handRight);
 			}
 			// check if the monster has been beaten if all weapons have been collected
 			if (handRight!=null && weaponCollected >= NUM_WEAPON && gameStart) {
@@ -151,35 +126,14 @@ public class OneTwoThree extends PApplet {
 		}
 		// check movement if the monster is awake
 		if (monster.isAwake() && gameStart && !gameOver) {
-			if (moving == false){
-				moving =  arm.isMoving();
-				// if arm is moving, update life
-				if (moving) {
-					arm.setState(arm.getState()-1);
-					if (arm.getHand()!=null) {
-						image(clawImage, arm.getHand().x, -1.2f, 1f, 1f);
-					}
-					lastDead = millis();
-					bloodBar.draw(arm.getState());
-					checkGameOver();
-				}
-			// give the player sometime to stop if they just got caught moving
-			} else {
-				if (lastDead != 0 && millis() - lastDead > deadWaitTime){
-					moving = false;
-					lastDead = 0;
-				} else {
-					if (arm.getHand()!=null) {
-						image(clawImage, arm.getHand().x-1f, -1.2f, 1.7f, 1.7f);
-					}
-				}
-			}
+			checkMovement();
 		// reset when the monster goes to sleep
 		} else {
 			moving = false;
 			lastDead = 0;
 		}
 		
+		// if game over and win, display winning scene. If game over and lose, display losing scene
 		if (gameOver){
 			if (gameWon) {
 				monster.setStage(Monster.State.SLEEPING);
@@ -190,17 +144,58 @@ public class OneTwoThree extends PApplet {
 			}
 		}
 	}
-		
-	/**
-	 * Draws an ellipse in the x,y position of the vector (it ignores z).
-	 * Will do nothing is vec is null.  This is handy because get joint 
-	 * will return null if the joint isn't tracked. 
-	 * @param vec
-	 */
-	public void drawIfValid(PVector vec) {
-		if(vec != null) {
-			ellipse(vec.x, vec.y, .1f,.1f);
+	
+	private void updateSurrounding() {
+		if (gameWon) {
+			image(winbg, 0,0, width, height);
+		} else {
+			image(bg, 0,0, width, height);
 		}
+		setScale(.5f);
+		noStroke();
+		//draw monster
+		monster.draw(this);
+		// draw blood bar and power bar
+		bloodBar.draw(arm.getState());
+		powerBar.draw(this.weaponCollected);
+	}
+	
+	private void checkWeaponGrabbed(PVector hand) {
+		if (weapon.isGrabbed(hand)) {
+			weapon.nextWeapon();
+			weaponCollected++;
+			powerBar.draw(weaponCollected);
+		}
+	}
+	
+	private void checkMovement() {
+		if (moving == false){
+			moving =  arm.isMoving();
+			// if arm is moving, update life
+			if (moving) {
+				updateLife();
+				checkGameOver();
+			}
+		} else {
+			// give the player sometime to stop if they just got caught moving
+			if (lastDead != 0 && millis() - lastDead > deadWaitTime){
+				moving = false;
+				lastDead = 0;
+			} else {
+				if (arm.getLastPosition() != null) {
+					image(clawImage, arm.getLastPosition().x-1f, -1.2f, 1.7f, 1.7f);
+				}
+			}
+		}
+	}
+	
+	private void updateLife() {
+		arm.setState(arm.getState()-1);
+		if (arm.getLastPosition() != null) {
+			image(clawImage, arm.getLastPosition().x, -1.2f, 1f, 1f);
+		}
+		lastDead = millis();
+		bloodBar.draw(arm.getState());
 	}
 	
 	/**
@@ -213,22 +208,12 @@ public class OneTwoThree extends PApplet {
 	}
 	
 	/**
-	 * Win the game if the monster is touched
+	 * Win the game if the monster is touched by either hand, elbow or shoulder
 	 * @param v hand
 	 * @return true if the monster is touched
 	 */
 	private void checkGameWon() {
-		if (arm.getHand() != null && monster.touchedMonster(arm.getHand())) {
-			gameOver = true;
-			gameWon = true;
-			return;
-		}
-		if (arm.getShoulder() != null && monster.touchedMonster(arm.getShoulder())) {
-			gameOver = true;
-			gameWon = true;
-			return;
-		}
-		if (arm.getElbow() != null && monster.touchedMonster(arm.getElbow())) {
+		if (arm.getLastPosition() != null && monster.touchedMonster(arm.getLastPosition())) {
 			gameOver = true;
 			gameWon = true;
 			return;
@@ -247,5 +232,4 @@ public class OneTwoThree extends PApplet {
 	public static void main(String[] args) {
 		PApplet.main(OneTwoThree.class.getName());
 	}
-
 }
