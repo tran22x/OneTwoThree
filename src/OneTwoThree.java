@@ -12,25 +12,32 @@ public class OneTwoThree extends PApplet {
 	
 	private static int PROJECTOR_WIDTH = 1024;
 	private static int PROJECTOR_HEIGHT = 786;
+	private static final int NUM_WEAPON = 5;
+	private static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
 	
 	private boolean gameOver;
 	private boolean gameStart;
+	private boolean gameWon;
 	
 	private Monster monster;
 	private Arm arm;
 	private WeaponPiece weapon;
 	private StatusBar bloodBar;
 	private StatusBar powerBar;
+	
 	private PImage instructionImg;
 	private PImage startButtonImg;
-	private static final int NUM_WEAPON = 5;
-	private int weaponCollected = 0;
+	private PImage gameOverImage;
+	private PImage gameWinImage;
 	private PImage bg;
+	private PImage winbg;
+	private PImage clawImage;
+	
+	private int weaponCollected = 0;
 	private boolean moving = false;
 	private int lastDead;
 	private int deadWaitTime = 500;
-	TCPBodyReceiver kinectReader;
-	private static float PROJECTOR_RATIO = (float)PROJECTOR_HEIGHT/(float)PROJECTOR_WIDTH;
+	private TCPBodyReceiver kinectReader;
 
 	public void createWindow(boolean useP2D, boolean isFullscreen, float windowsScale) {
 		if (useP2D) {
@@ -62,10 +69,14 @@ public class OneTwoThree extends PApplet {
 		arm = new Arm(this);
 		weapon = new WeaponPiece(this);
 		bg = loadImage("data/Gamebgnd.png");
+		winbg = loadImage("data/Gamebgnd_win.png");
 		bloodBar = new StatusBar(this, "life", .5f);
 		powerBar = new StatusBar(this, "power", -1f);
 		instructionImg = loadImage("data/instruction.png");
 		startButtonImg = loadImage("data/startbutton.png");
+		gameOverImage = loadImage("data/gameover.png");
+		gameWinImage = loadImage("data/winStatement.png");
+		clawImage = loadImage("data/claw.png");
 	}
 
 	public void setup(){
@@ -92,69 +103,90 @@ public class OneTwoThree extends PApplet {
 	}
 	
 	public void draw(){
-		if(!gameOver) {
+		if (gameWon) {
+			image(winbg, 0,0, width, height);
+		} else {
 			image(bg, 0,0, width, height);
-			setScale(.5f);
-			noStroke();
-			//draw weapon
-			weapon.drawWeapon();
-			//draw monster
-			monster.draw(this);
-			// draw blood bar and power bar
-			bloodBar.draw(arm.getState());
-			powerBar.draw(this.weaponCollected);
-			
-			//draw person
-			KinectBodyData bodyData = kinectReader.getNextData();
-			if(bodyData == null) return;
-			Body person = bodyData.getPerson(0);
-			if (!gameStart) {
-				// load instruction and start button
-				image(instructionImg, -2f, -.5f, 4f, 2f);
-				image(startButtonImg, -.2f, -.6f, .4f, .2f);
+		}
+		setScale(.5f);
+		noStroke();
+		//draw weapon
+		weapon.drawWeapon();
+		//draw monster
+		monster.draw(this);
+		// draw blood bar and power bar
+		bloodBar.draw(arm.getState());
+		powerBar.draw(this.weaponCollected);
+		
+		//draw person
+		KinectBodyData bodyData = kinectReader.getNextData();
+		if(bodyData == null) return;
+		Body person = bodyData.getPerson(0);
+		if (!gameStart) {
+			// load instruction and start button
+			image(instructionImg, -2f, -.5f, 4f, 2f);
+			image(startButtonImg, -.2f, -.6f, .4f, .2f);
+		}
+		if(person != null && !gameOver){
+			PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
+			PVector handRight = person.getJoint(Body.HAND_RIGHT);
+			PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
+			arm.draw(handRight, elbowRight, shoulderRight, weaponCollected, this);
+			// if game has started and hand grab weapon, update power bar
+			if (handRight != null && weapon.isGrabbed(handRight) && gameStart && weaponCollected < NUM_WEAPON) {
+				weapon.nextWeapon();
+				weaponCollected++;
+				powerBar.draw(weaponCollected);
 			}
-			if(person != null){
-				PVector shoulderRight = person.getJoint(Body.SHOULDER_RIGHT);
-				PVector handRight = person.getJoint(Body.HAND_RIGHT);
-				PVector elbowRight = person.getJoint(Body.ELBOW_RIGHT);
-				arm.draw(handRight, elbowRight, shoulderRight, weaponCollected, this);
-				// if game has started and hand grab weapon, update power bar
-				if (handRight != null && weapon.isGrabbed(handRight) && gameStart && weaponCollected < NUM_WEAPON) {
-					weapon.nextWeapon();
-					weaponCollected++;
-					powerBar.draw(weaponCollected);
-				}
-				// check if the monster has been beaten if all weapons have been collected
-				if (handRight!=null && weaponCollected >= NUM_WEAPON && gameStart) {
-					weapon.setCollected(true);
-					checkGameWon(handRight);
-				}
-				// if game has not been started, check if the start button is touched
-				if (handRight!=null && !gameStart) {
-					gameStart = checkTouchStartButton(handRight);
-					if (gameStart) monster.startTimer();
-				}
+			// check if the monster has been beaten if all weapons have been collected
+			if (handRight!=null && weaponCollected >= NUM_WEAPON && gameStart) {
+				weapon.setCollected(true);
+				checkGameWon();
 			}
-			// check movement if the monster is awake
-			if (monster.isAwake() && gameStart) {
-				if (moving == false){
-					moving =  arm.isMoving();
-					// if arm is moving, update life
-					if (moving) {
-						arm.setState(arm.getState()-1);
-						lastDead = millis();
-						bloodBar.draw(arm.getState());
-						checkGameOver();
+			// if game has not been started, check if the start button is touched
+			if (handRight!=null && !gameStart) {
+				gameStart = checkTouchStartButton(handRight);
+				if (gameStart) monster.startTimer();
+			}
+		}
+		// check movement if the monster is awake
+		if (monster.isAwake() && gameStart && !gameOver) {
+			if (moving == false){
+				moving =  arm.isMoving();
+				// if arm is moving, update life
+				if (moving) {
+					arm.setState(arm.getState()-1);
+					if (arm.getHand()!=null) {
+						image(clawImage, arm.getHand().x, -1.2f, 1f, 1f);
 					}
-				// give the player sometime to stop if they just got caught moving
-				} else if(lastDead != 0 && millis() - lastDead > deadWaitTime){
+					lastDead = millis();
+					bloodBar.draw(arm.getState());
+					checkGameOver();
+				}
+			// give the player sometime to stop if they just got caught moving
+			} else {
+				if (lastDead != 0 && millis() - lastDead > deadWaitTime){
 					moving = false;
 					lastDead = 0;
+				} else {
+					if (arm.getHand()!=null) {
+						image(clawImage, arm.getHand().x-1f, -1.2f, 1.7f, 1.7f);
+					}
 				}
-			// reset when the monster goes to sleep
+			}
+		// reset when the monster goes to sleep
+		} else {
+			moving = false;
+			lastDead = 0;
+		}
+		
+		if (gameOver){
+			if (gameWon) {
+				monster.setStage(Monster.State.SLEEPING);
+				image(gameWinImage, -2f, -.5f, 4f, 2f);
 			} else {
-				moving = false;
-				lastDead = 0;
+				monster.setStage(Monster.State.AWAKE);
+				image(gameOverImage, -1.5f, -1.2f, 2f, 2f);
 			}
 		}
 	}
@@ -185,13 +217,22 @@ public class OneTwoThree extends PApplet {
 	 * @param v hand
 	 * @return true if the monster is touched
 	 */
-	private boolean checkGameWon(PVector v) {
-		if (monster.touchedMonster(v)) {
-			background(255,255,255);
+	private void checkGameWon() {
+		if (arm.getHand() != null && monster.touchedMonster(arm.getHand())) {
 			gameOver = true;
-			return true;
+			gameWon = true;
+			return;
 		}
-		return false;
+		if (arm.getShoulder() != null && monster.touchedMonster(arm.getShoulder())) {
+			gameOver = true;
+			gameWon = true;
+			return;
+		}
+		if (arm.getElbow() != null && monster.touchedMonster(arm.getElbow())) {
+			gameOver = true;
+			gameWon = true;
+			return;
+		}
 	}
 	
 	/**
@@ -200,11 +241,6 @@ public class OneTwoThree extends PApplet {
 	private void checkGameOver() {
 		if (arm.getState()==0) {
 			gameOver = true;
-		}
-		if (gameOver) {
-			//TO DO: a scene for game over
-			background(0,0,0);
-			this.image(loadImage("data/gameover.png"), -1 , 0, 3f, 1f);
 		}
 	}
 	

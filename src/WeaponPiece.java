@@ -12,7 +12,6 @@ public class WeaponPiece {
 	private float y;
 	private PApplet app;
 	private PImage weapon;
-	private int currWeapon = 0;
 	public boolean allCollected = false;
 	final double THRESHOLD = .2f;//radius of weapon
 
@@ -56,7 +55,6 @@ public class WeaponPiece {
 			x = random.nextFloat()*(-1);
 			y = (float) ((float) random.nextFloat()*(0.7))*(-1);
 		}
-		currWeapon++;
 	}
 	
 }
