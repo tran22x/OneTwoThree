@@ -6,21 +6,24 @@ import processing.core.PImage;
 import processing.core.PVector;
 
 public class Monster {
+	private PApplet app;
 	
 	public static enum State {AWAKE, SLEEPING};
 	private State state = State.SLEEPING;
 	private int time = Integer.MAX_VALUE;
+	
 	private int wait = 2000;
 	private Random random = new Random();
-	private PApplet app;
+	
 	public final float x = (float) -2.4;
 	public final float y = (float) -0.5;
+	public final int MONSTER_SIZE = 2;
+	
 	private PImage sleeping;
 	private PImage awake;
-	public final int MONSTER_SIZE = 2;
+	
 	public Monster (PApplet app) {
 		this.app = app;
-		//time = app.millis();
 		sleeping = app.loadImage("data/Monster-Sleeping.png");
 		awake = app.loadImage("data/Monster-Awake.png");
 	}
@@ -30,14 +33,7 @@ public class Monster {
 	}
 	
 	public void draw (PApplet app) {
-		if(app.millis() - time >= wait){
-			if (state == State.AWAKE) {
-				state = State.SLEEPING;
-			}
-			else state = State.AWAKE;
-			wait = random.nextInt(5000 + 1 - 2000) + 2000; //generate random wait time between 5 - 8 seconds
-		    time = app.millis();//also update the stored time
-		}
+		updateTimer(app);
 		switch(state) {
 		case AWAKE:
 			drawAwake(app);
@@ -45,6 +41,17 @@ public class Monster {
 		case SLEEPING:
 			drawSleeping(app);
 			break;
+		}
+	}
+
+	private void updateTimer(PApplet app) {
+		if(app.millis() - time >= wait){
+			if (state == State.AWAKE) {
+				state = State.SLEEPING;
+			}
+			else state = State.AWAKE;
+			wait = random.nextInt(5000 + 1 - 2000) + 2000; //generate random wait time between 5 - 8 seconds
+		    time = app.millis();//also update the stored time
 		}
 	}
 	
