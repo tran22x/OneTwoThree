@@ -17,12 +17,14 @@ public class Power {
 	public void setCollected (boolean b) {
 		allCollected = b;
 	}
+	
 	public Power(PApplet app) {
 		//save random location
 		generateRandomLoc();
 		this.app = app;
 		power = app.loadImage("data/light.png");
 	}
+	
 	private void generateRandomLoc() {
 		if (random.nextBoolean()) {
 			x = random.nextFloat();
@@ -52,5 +54,4 @@ public class Power {
 	public void nextPower() {
 		generateRandomLoc();
 	}
-	
 }

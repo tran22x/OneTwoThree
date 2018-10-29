@@ -29,7 +29,8 @@ public class StatusBar {
 		}
 		app.rect(xLocation, y, barWidth, barHeight);
 		app.fill(244, 137, 66);
-		if (level != 0) {
+		// draw the orange bar if the level is not 0
+		if (level > 0) {
 			app.rect(xLocation+BORDER, y, barWidth*level/5-BORDER*2, barHeight-BORDER*2, 7);
 		}
 	}
